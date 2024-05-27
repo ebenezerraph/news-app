@@ -26,6 +26,7 @@ color: #333;
 
 a.button {
 border: 2px solid #004400;
+border-radius: 3px;
 color: var(--dark-green);   
 transition: all 0.3s ease;
 padding: 6px 24px;
@@ -55,6 +56,7 @@ z-index: 1;
 }
 
 .logo {
+text-transform: uppercase;
 color: #002200;
 }
 
@@ -66,9 +68,10 @@ height: calc(100% - 10px);
 width: 500px;
 height: 100%;
 border-color: transparent;
+border-radius: 3px;
 background-color: var(--dark-green);
 color: var(--light-green);
-font-size: 16px;
+font-size: 15px;
 line-height: 1.4;
 padding-left: 5px;
 }
@@ -92,7 +95,7 @@ list-style: none;
 
 .news-article {
 display: flex;
-align-items: flex-start;
+align-items: center;
 margin-bottom: 30px;
 border: 1px solid var(--light-green);
 padding: 15px;
@@ -101,17 +104,26 @@ justify-content: space-between;
 transition: all 0.3s ease;
 }
 
-.article-image {
+.image-container {
+height: 150px;
 flex-grow: 0;
 flex-shrink: 0;
 margin-left: 20px;
 border-radius: 10px;
+width: 200px;
+overflow: hidden;
+}
+
+.article-image {
+width: 100%;
+height: 100%;
+object-fit: cover;
 }
 
 .news-article:hover {
-    box-shadow: 5px 5px var(--dark-green);
-    translate: -10px -10px;
-    border-color: var(--dark-green);
+box-shadow: 5px 5px var(--dark-green);
+translate: -10px -10px;
+border-color: var(--dark-green);
 }
 
 .title {
@@ -139,7 +151,7 @@ margin-top: 20px;
 }
 
 .pagination a:hover {
-    color: var(--light-grey);
+color: var(--light-grey);
 }
 
 .previous-page {
@@ -147,34 +159,34 @@ margin-right: 20px;
 }
 
 @media screen and (max-width: 550px) {
-    header {
-        flex-direction: column;
-        height: auto;
-        padding-bottom: 10px;
-    }
+header {
+flex-direction: column;
+height: auto;
+padding: 5px;
+}
 
-    .logo {
-        display: inline-block;
-        margin-bottom: 10px;
-    }
+.logo {
+display: inline-block;
+margin-bottom: 10px;
+}
 
-    form, .search-input {
-        width: 100%;
-    }
+form, .search-input {
+width: 100%;
+}
 
-    .github-button {
-        display: none;
-    }
+.github-button {
+display: none;
+}
 
-    .title {
-        font-size: 18px;
-    }
+.title {
+font-size: 18px;
+}
 
-    .description {
-        font-size: 14px;
-    }
+.description {
+font-size: 14px;
+}
 
-    .article-image {
-        display: none;
-    }
+.article-image {
+display: none;
+}
 }

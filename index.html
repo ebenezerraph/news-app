@@ -10,7 +10,7 @@
   <body>
     <main>
       <header>
-        <a class="logo" href="/">News App</a>
+        <a class="logo" href="/">news app</a>
         <form action="/search" method="GET">
           <input
             autofocus
@@ -57,7 +57,7 @@
                 <time class="published-date">{{ .FormatPublishedDate }}</time>
               </div>
             </div>
-            <img class="article-image" src="{{ .URLToImage }}" height="150px" width="200px" alt="image unavailable!" />
+            <div class="image-container"><img class="article-image" src="{{ .URLToImage }}" alt="Image not available" /></div>
           </li>
           {{ end }}
         </ul>
