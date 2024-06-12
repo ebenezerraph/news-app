@@ -17,7 +17,6 @@ import (
 )
 
 var tpl = template.Must(template.ParseFiles("index.html"))
-
 type Search struct {
 	Query      string
 	NextPage   int
@@ -66,6 +65,18 @@ func searchHandler (newsapi *news.Client) http.HandlerFunc {
 		if page == "" {
 			page = "1"
 		}
+
+		if searchQuery == "" {
+            		buf := &bytes.Buffer{}
+            		err := tpl.Execute(buf, nil)
+            		if err != nil {
+                		http.Error(w, err.Error(), http.StatusInternalServerError)
+                		return
+            		}
+
+            		buf.WriteTo(w)
+            		return
+        	}
 
 		results, err := newsapi.FetchEverything(searchQuery, page)
 		if err != nil {
