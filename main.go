@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"log"
@@ -79,10 +80,22 @@ func searchHandler (newsapi *news.Client) http.HandlerFunc {
         	}
 
 		results, err := newsapi.FetchEverything(searchQuery, page)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+        	if err != nil {
+            		if err == context.DeadlineExceeded {
+                	buf := &bytes.Buffer{}
+                	err := tpl.Execute(buf, nil)
+                	if err != nil {
+                    	http.Error(w, err.Error(), http.StatusInternalServerError)
+                    	return
+                	}
+
+                	buf.WriteTo(w)
+                	return
+            		}
+
+            		http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+        	}
 
 		nextPage, err := strconv.Atoi(page)
 		if err != nil {
