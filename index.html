@@ -44,23 +44,33 @@
             {{ end }}
           {{ end }}
         </div>
-        <ul class="search-results">
-          {{ range.Results.Articles }}
-          <li class="news-article">
-            <div>
-              <a target="_blank" rel="noreferrer noopener" href="{{.URL}}">
-                <h3 class="title">{{.Title }}</h3>
-              </a>
-              <p class="description">{{ .Description }}</p>
-              <div class="metadata">
-                <p class="source">{{ .Source.Name }}</p>
-                <time class="published-date">{{ .FormatPublishedDate }}</time>
-              </div>
-            </div>
-            <div class="image-container"><img class="article-image" src="{{ .URLToImage }}" alt="Image not available" /></div>
-          </li>
-          {{ end }}
-        </ul>
+        {{ if .ErrorMsg }}
+          <div class="error-message">
+              <p>{{ .ErrorMsg }}</p>
+          </div>
+        {{ else }}      
+          <ul class="search-results">
+            {{ range.Results.Articles }}
+              <li class="news-article">
+                <div>
+                  <a target="_blank" rel="noreferrer noopener" href="{{.URL}}">
+                    <h3 class="title">{{.Title }}</h3>
+                  </a>
+                  <p class="description">{{ .Description }}</p>
+                  <div class="metadata">
+                    <p class="source">{{ .Source.Name }}</p>
+                    <time class="published-date">{{ .FormatPublishedDate }}</time>
+                  </div>
+                </div>
+                {{ if and .URLToImage ($.IsImageValid .URLToImage) }}
+                  <div class="image-container">
+                    <img class="article-image" src="{{ .URLToImage }}" alt=" " />
+                  </div>
+                {{ end }}
+              </li>
+            {{ end }}
+          </ul>
+        {{ end }}
         <div class="pagination">
           {{ if . }}
             {{ if (gt .NextPage 2) }}

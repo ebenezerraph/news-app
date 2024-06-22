@@ -83,6 +83,23 @@ margin: 0 auto;
 padding: 80px 20px 40px;
 }
 
+.error-message {
+     position: fixed;
+     left: 0;
+     top: 0;
+     display: flex;
+     height: 100vh;
+     width: 100%;
+     background: transparent;
+     padding-top: 80px;
+     justify-content: center;
+}
+
+.error-message p {
+     text-align: center;
+     color: #777;
+}
+
 .result-count {
 color: var(--dark-grey);
 text-align: center;
@@ -91,6 +108,10 @@ margin-bottom: 15px;
 
 .search-results {
 list-style: none;
+}
+
+strong {
+     color: #00ff00;
 }
 
 .news-article {

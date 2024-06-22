@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"html/template"
 	"log"
 	"math"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -23,10 +23,23 @@ type Search struct {
 	NextPage   int
 	TotalPages int
 	Results    *news.Results
+	ErrorMsg   string
 }
 
 func (s *Search) IsLastPage() bool {
 	return s.NextPage >= s.TotalPages
+}
+
+func (s *Search) IsImageValid(url string) bool {
+	if url == "" {
+	    return false
+	}
+	resp, err := http.Head(url)
+	if err != nil {
+	    return false
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == http.StatusOK
 }
 
 func (s *Search) CurrentPage() int {
@@ -52,83 +65,86 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteTo(w)
 }
 
-func searchHandler (newsapi *news.Client) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
-		u, err := url.Parse(r.URL.String())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+func searchHandler(newsapi *news.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+	    u, err := url.Parse(r.URL.String())
+	    if err != nil {
+		   http.Error(w, "Invalid URL", http.StatusBadRequest)
+		   return
+	    }
+	    params := u.Query()
+	    searchQuery := params.Get("q")
+	    page := params.Get("page")
+	    if page == "" {
+		   page = "1"
+	    }
+	    if searchQuery == "" {
+		   buf := &bytes.Buffer{}
+		   err := tpl.Execute(buf, nil)
+		   if err != nil {
+			  http.Error(w, "Error rendering template", http.StatusInternalServerError)
+			  return
+		   }
+		   buf.WriteTo(w)
+		   return
+	    }
+	    results, err := newsapi.FetchEverything(searchQuery, page)
+	    if err != nil {
+		   search := &Search{
+			  Query:    searchQuery,
+			  ErrorMsg: "Error fetching news. Please check your internet connection and try again later.",
+		   }
+		   if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			  search.ErrorMsg = "The request timed out. Please try again later."
+		   }
+		   buf := &bytes.Buffer{}
+		   err := tpl.Execute(buf, search)
+		   if err != nil {
+			  http.Error(w, "Error rendering template", http.StatusInternalServerError)
+			  return
+		   }
+		   buf.WriteTo(w)
+		   return
+	    }
+	    nextPage, err := strconv.Atoi(page)
+	    if err != nil {
+		   http.Error(w, "Invalid page number", http.StatusBadRequest)
+		   return
+	    }
+	    
+	    search := &Search{
+		   Query:      searchQuery,
+		   NextPage:   nextPage,
+		   TotalPages: int(math.Ceil(float64(results.TotalResults) / float64(newsapi.PageSize))),
+		   Results:    results,
+	    }
+
+	    var filteredArticles []news.Article
+
+		for _, article := range results.Articles {
+			// Check for missing title or description
+			if article.Title != "[Removed]" && article.Description != "[Removed]" {
+			filteredArticles = append(filteredArticles, article)
+			}
 		}
 
-		params := u.Query()
-		searchQuery := params	.Get("q")
-		page := params.Get("page")
-		if page == "" {
-			page = "1"
-		}
+		results.Articles = filteredArticles
 
-		if searchQuery == "" {
-            		buf := &bytes.Buffer{}
-            		err := tpl.Execute(buf, nil)
-            		if err != nil {
-                		http.Error(w, err.Error(), http.StatusInternalServerError)
-                		return
-            		}
-
-            		buf.WriteTo(w)
-            		return
-        	}
-
-		results, err := newsapi.FetchEverything(searchQuery, page)
-        	if err != nil {
-            		if err == context.DeadlineExceeded {
-                	buf := &bytes.Buffer{}
-                	err := tpl.Execute(buf, nil)
-                	if err != nil {
-                    	http.Error(w, err.Error(), http.StatusInternalServerError)
-                    	return
-                	}
-
-                	buf.WriteTo(w)
-                	return
-            		}
-
-            		http.Error(w, err.Error(), http.StatusInternalServerError)
-            		return
-        	}
-
-		nextPage, err := strconv.Atoi(page)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		search := &Search{
-			Query:      searchQuery,
-			NextPage:   nextPage,
-			TotalPages: int(math.Ceil(float64(results.TotalResults) / float64(newsapi.PageSize))),
-			Results:    results,
-		}
-
-		if ok := !search.IsLastPage(); ok {
-			search.NextPage++
-		}
-
-		buf := &bytes.Buffer{}
-		err = tpl.Execute(buf, search)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		buf.WriteTo(w)
-
-		fmt.Printf("%+v", results)
-
-		fmt.Println("Search Query is: ", searchQuery)
-		fmt.Println("Page is: ", page)
+	    if !search.IsLastPage() {
+		   search.NextPage++
+	    }
+	    buf := &bytes.Buffer{}
+	    err = tpl.Execute(buf, search)
+	    if err != nil {
+		   http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		   return
+	    }
+	    buf.WriteTo(w)
+	    fmt.Printf("%+v", results)
+	    fmt.Println("Search Query is: ", searchQuery)
+	    fmt.Println("Page is: ", page)
 	}
-}
+ } 
 
 func main() {
 	err := godotenv.Load()
