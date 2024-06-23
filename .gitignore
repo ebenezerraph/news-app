@@ -9,8 +9,6 @@
 *.so
 *.dylib
 
-/tmp/main.exe
-
 # Test binary, built with `go test -c`
 *.test
 
