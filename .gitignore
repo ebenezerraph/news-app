@@ -9,6 +9,8 @@
 *.so
 *.dylib
 
+.env
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -21,6 +23,7 @@
 ### Go Patch ###
 /vendor/
 /Godeps/
+
 /tmp/
 
 # End of https://www.gitignore.io/api/go
