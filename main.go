@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"log"
 	"math"
@@ -15,35 +14,38 @@ import (
 
 	"github.com/freshman-tech/news-demo/news"
 	"github.com/joho/godotenv"
+	"golang.org/x/net/html"
 )
 
 var tpl *template.Template
 
+func add(a, b int) int {
+	return a + b
+}
+
 func init() {
-	tpl = template.Must(template.ParseFiles("index.html"))
+	var err error
+	tpl = template.New("index.html").Funcs(template.FuncMap{
+		"add": add,
+	})
+	tpl, err = tpl.ParseFiles("index.html")
+	if err != nil {
+		log.Fatalf("Error parsing template: %v", err)
+	}
 }
 
 type Search struct {
-	Query      string
-	NextPage   int
-	TotalPages int
-	Results    *news.Results
-	ErrorMsg   string
+	Query        string
+	ErrorMsg     string
+	Results      *news.Results
+	CurrentPage  int
+	TotalPages   int
+	NextPage     int
+	PreviousPage int
 }
 
 func (s *Search) IsLastPage() bool {
-	return s.NextPage >= s.TotalPages
-}
-
-func (s *Search) CurrentPage() int {
-	if s.NextPage == 1 {
-		return s.NextPage
-	}
-	return s.NextPage - 1
-}
-
-func (s *Search) PreviousPage() int {
-	return s.CurrentPage() - 1
+	return s.CurrentPage == s.TotalPages
 }
 
 func (s *Search) IsImageValid(url string) bool {
@@ -78,9 +80,34 @@ func NewServer(apiKey string) *Server {
 	}
 }
 
+func (s *Server) fetchResults(query, page string) (*news.Results, error) {
+	apiStart := time.Now()
+	log.Printf("Search Query: %s, Page: %s", query, page)
+
+	results, err := s.newsapi.FetchEverything(query, page)
+	apiElapsed := time.Since(apiStart)
+	log.Printf("API fetch took %s", apiElapsed)
+
+	if err != nil {
+		log.Printf("Error fetching results from API: %v", err)
+		return nil, err
+	}
+
+	// Filter out removed articles
+	var filteredArticles []news.Article
+	for _, article := range results.Articles {
+		if article.Title != "[Removed]" && article.Description != "[Removed]" {
+			filteredArticles = append(filteredArticles, article)
+		}
+	}
+	results.Articles = filteredArticles
+
+	return results, nil
+}
+
 func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	buf := &bytes.Buffer{}
-	err := tpl.Execute(buf, nil)
+	err := tpl.ExecuteTemplate(buf, "index.html", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -88,7 +115,30 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteTo(w)
 }
 
+func getArticleCount(n *html.Node) int {
+	if n.Type == html.ElementNode && n.Data == "div" {
+		for _, a := range n.Attr {
+			if a.Key == "id" && a.Val == "articleCount" {
+				for _, attr := range n.Attr {
+					if attr.Key == "data-count" {
+						count, _ := strconv.Atoi(attr.Val)
+						return count
+					}
+				}
+			}
+		}
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if count := getArticleCount(c); count != 0 {
+			return count
+		}
+	}
+	return 0
+}
+
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
+	handlerStart := time.Now()
+
 	u, err := url.Parse(r.URL.String())
 	if err != nil {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
@@ -105,31 +155,34 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiStart := time.Now()
-	results, err := s.newsapi.FetchEverything(searchQuery, page)
-	apiElapsed := time.Since(apiStart)
-	log.Printf("API fetch took %s", apiElapsed)
-
+	results, err := s.fetchResults(searchQuery, page)
 	if err != nil {
 		s.handleSearchError(w, searchQuery, err)
 		return
 	}
 
-	nextPage, err := strconv.Atoi(page)
+	currentPage, err := strconv.Atoi(page)
 	if err != nil {
 		http.Error(w, "Invalid page number", http.StatusBadRequest)
 		return
 	}
 
-	search := &Search{
-		Query:      searchQuery,
-		NextPage:   nextPage,
-		TotalPages: int(math.Ceil(float64(results.TotalResults) / float64(s.newsapi.PageSize))),
-		Results:    s.filterArticles(results),
+	pageSize := s.newsapi.PageSize
+	totalPages := int(math.Ceil(float64(results.TotalResults) / float64(pageSize)))
+
+	nextPage := currentPage + 1
+	previousPage := currentPage - 1
+	if previousPage < 1 {
+		previousPage = 1
 	}
 
-	if !search.IsLastPage() {
-		search.NextPage++
+	search := &Search{
+		Query:        searchQuery,
+		Results:      results,
+		CurrentPage:  currentPage,
+		TotalPages:   totalPages,
+		NextPage:     nextPage,
+		PreviousPage: previousPage,
 	}
 
 	templateStart := time.Now()
@@ -138,16 +191,22 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	templateElapsed := time.Since(templateStart)
 	log.Printf("Template rendering took %s", templateElapsed)
 
+	doc, docErr := html.Parse(bytes.NewReader(buf.Bytes()))
+	if docErr != nil {
+		log.Printf("Error parsing rendered HTML: %v", err)
+	} else {
+		count := getArticleCount(doc)
+		log.Printf("Number of articles displayed in template: %d", count)
+	}
+
 	if err != nil {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		return
 	}
 	buf.WriteTo(w)
 
-	totalElapsed := time.Since(apiStart)
-	log.Printf("Total handler time: %s", totalElapsed)
-
-	fmt.Printf("Search Query: %s, Page: %s\n", searchQuery, page)
+	handlerElapsed := time.Since(handlerStart)
+	log.Printf("Total handler time: %s", handlerElapsed)
 }
 
 func (s *Server) handleSearchError(w http.ResponseWriter, query string, err error) {
@@ -165,17 +224,6 @@ func (s *Server) handleSearchError(w http.ResponseWriter, query string, err erro
 	}
 
 	buf.WriteTo(w)
-}
-
-func (s *Server) filterArticles(results *news.Results) *news.Results {
-	var filteredArticles []news.Article
-	for _, article := range results.Articles {
-		if article.Title != "[Removed]" && article.Description != "[Removed]" {
-			filteredArticles = append(filteredArticles, article)
-		}
-	}
-	results.Articles = filteredArticles
-	return results
 }
 
 func main() {

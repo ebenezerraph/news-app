@@ -33,27 +33,27 @@
 </html>
 
 {{ define "result-count" }}
-{{ if .Results }}
+{{ if and .Results (gt .Results.TotalResults 0) }}
 <div class="result-count">
-    {{ if gt .Results.TotalResults 0 }}
     <p>About <strong>{{ .Results.TotalResults }}</strong> results were found.</p>
-    {{ end }}
 </div>
 {{ end }}
 {{ end }}
 
 {{ define "error-message" }}
-{{ if .ErrorMsg }}
+{{ with .ErrorMsg }}
 <div class="error-message">
-    <p>{{ .ErrorMsg }}</p>
+    <p>{{ . }}</p>
 </div>
 {{ end }}
 {{ end }}
 
 {{ define "search-results" }}
 {{ if not .ErrorMsg }}
+{{ $articleCount := 0 }}
 <ul class="search-results">
     {{ range .Results.Articles }}
+    {{ if and (ne .Title "[Removed]") (ne .Description "[Removed]") }}
     <li class="news-article">
         <div>
             <a target="_blank" rel="noreferrer noopener" href="{{ .URL }}">
@@ -67,18 +67,20 @@
         </div>
         {{ if and .URLToImage ($.IsImageValid .URLToImage) }}
         <div class="image-container">
-            <img class="article-image" src="{{ .URLToImage }}" alt="image unavailable" loading="lazy">
+            <img class="article-image" src="{{ .URLToImage }}" alt=" " loading="lazy">
         </div>
         {{ end }}
     </li>
+    {{ $articleCount = add $articleCount 1 }}
+    {{ end }}
     {{ end }}
 </ul>
+<div id="articleCount" data-count="{{ $articleCount }}"></div>
 {{ end }}
 {{ end }}
 
 {{ define "pagination" }}
-{{ if and . .Results }}
-{{ if gt .Results.TotalResults 0 }}
+{{ if and .Results (gt .Results.TotalResults 0) }}
 <p class="page-count">You are on page <strong>{{ .CurrentPage }}</strong> of <strong>{{ .TotalPages }}</strong>.</p>
 <div class="pagination">
     {{ if gt .NextPage 2 }}
@@ -88,10 +90,9 @@
     <a href="/search?q={{ .Query }}&page={{ .NextPage }}" class="button next-page">Next</a>
     {{ end }}
 </div>
-{{ else if ne .Query "" }}
+{{ else if .Query }}
 <div class="error-message">
     <p>No results found for your query: <strong>{{ .Query }}</strong>.</p>
 </div>
 {{ end }}
-{{ end }}
-{{ end }}
+{{ end }}x
