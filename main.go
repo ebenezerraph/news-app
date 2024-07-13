@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/freshman-tech/news-demo/news"
@@ -70,13 +71,21 @@ func NewNewsAPIClient(apiKey string, pageSize int) *NewsAPIClient {
 	}
 }
 
+type CacheEntry struct {
+	Content    []byte
+	Expiration time.Time
+}
+
 type Server struct {
 	newsapi *NewsAPIClient
+	cache   map[string]CacheEntry
+	mutex   sync.RWMutex
 }
 
 func NewServer(apiKey string) *Server {
 	return &Server{
 		newsapi: NewNewsAPIClient(apiKey, 20),
+		cache:   make(map[string]CacheEntry),
 	}
 }
 
@@ -136,6 +145,25 @@ func getArticleCount(n *html.Node) int {
 	return 0
 }
 
+func (s *Server) getCachedContent(key string) ([]byte, bool) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	entry, found := s.cache[key]
+	if !found || time.Now().After(entry.Expiration) {
+		return nil, false
+	}
+	return entry.Content, true
+}
+
+func (s *Server) setCachedContent(key string, content []byte) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.cache[key] = CacheEntry{
+		Content:    content,
+		Expiration: time.Now().Add(5 * time.Minute), // Cache for 5 minutes
+	}
+}
+
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	handlerStart := time.Now()
 
@@ -152,6 +180,14 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if searchQuery == "" {
 		s.indexHandler(w, r)
+		return
+	}
+
+	cacheKey := searchQuery + "_" + page
+	cachedContent, found := s.getCachedContent(cacheKey)
+	if found {
+		log.Printf("Cache hit for query: %s, page: %s", searchQuery, page)
+		w.Write(cachedContent)
 		return
 	}
 
@@ -203,7 +239,10 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 		return
 	}
-	buf.WriteTo(w)
+
+	renderedContent := buf.Bytes()
+	s.setCachedContent(cacheKey, renderedContent)
+	w.Write(renderedContent)
 
 	handlerElapsed := time.Since(handlerStart)
 	log.Printf("Total handler time: %s", handlerElapsed)
