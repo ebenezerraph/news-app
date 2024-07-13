@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/freshman-tech/news-demo/news"
@@ -48,16 +49,32 @@ func (s *Search) IsLastPage() bool {
 	return s.CurrentPage == s.TotalPages
 }
 
+var (
+	imageCache sync.Map
+	client     = &http.Client{Timeout: 2 * time.Second}
+)
+
 func (s *Search) IsImageValid(url string) bool {
 	if url == "" {
 		return false
 	}
-	resp, err := http.Head(url)
-	if err != nil {
-		return false
+
+	// Check cache first
+	if valid, ok := imageCache.Load(url); ok {
+		return valid.(bool)
 	}
-	defer resp.Body.Close()
-	return resp.StatusCode == http.StatusOK
+
+	// Assume valid initially and check asynchronously
+	go func() {
+		resp, err := client.Head(url)
+		valid := err == nil && resp.StatusCode == http.StatusOK
+		imageCache.Store(url, valid)
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
+
+	return true
 }
 
 type NewsAPIClient struct {
@@ -194,6 +211,12 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		TotalPages:   totalPages,
 		NextPage:     nextPage,
 		PreviousPage: previousPage,
+	}
+
+	for _, article := range results.Articles {
+		if article.URLToImage != "" {
+			search.IsImageValid(article.URLToImage)
+		}
 	}
 
 	templateStart := time.Now()
