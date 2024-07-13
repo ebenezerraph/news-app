@@ -59,12 +59,10 @@ func (s *Search) IsImageValid(url string) bool {
 		return false
 	}
 
-	// Check cache first
 	if valid, ok := imageCache.Load(url); ok {
 		return valid.(bool)
 	}
 
-	// Assume valid initially and check asynchronously
 	go func() {
 		resp, err := client.Head(url)
 		valid := err == nil && resp.StatusCode == http.StatusOK
