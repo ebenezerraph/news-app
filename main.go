@@ -261,7 +261,7 @@ func (s *Server) handleSearchError(w http.ResponseWriter, query string, err erro
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Error loading .env file")
+		log.Println("Error loading .env file, falling back to system environment")
 	}
 
 	port := os.Getenv("PORT")
@@ -271,7 +271,7 @@ func main() {
 
 	apiKey := os.Getenv("NEWS_API_KEY")
 	if apiKey == "" {
-		log.Fatal("Env: apiKey must be set")
+		log.Fatal("NEWS_API_KEY must be set in .env file or system environment")
 	}
 
 	server := NewServer(apiKey)
