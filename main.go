@@ -271,7 +271,6 @@ func main() {
 
 	apiKey := os.Getenv("NEWS_API_KEY")
 	if apiKey == "" {
-		apiKey = "115c54bbd699469281a40befde1a5071"
 		log.Fatal("NEWS_API_KEY must be set in .env file or system environment")
 	}
 
