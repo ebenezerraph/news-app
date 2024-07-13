@@ -110,7 +110,7 @@ func (s *Server) fetchResults(query, page string) (*news.Results, error) {
 			}
 		}
 	}
-	
+
 	results.Articles = filteredArticles
 
 	return results, nil

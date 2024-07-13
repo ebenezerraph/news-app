@@ -63,10 +63,10 @@ header {
 }
 
 .logo {
+     min-width: 140px;
      text-transform: uppercase;
      color: var(--darker-green);
      font-weight: bolder;
-     margin-right: 10px;
 }
 
 form {
@@ -84,6 +84,7 @@ form {
      font-size: 15px;
      line-height: 1.4;
      padding-left: 5px;
+     margin: 0 10px;
 }
 
 input:focus-visible {
@@ -91,7 +92,6 @@ input:focus-visible {
 }
 
 .github-button {
-     margin-left: 10px;
      min-height: 30px;
      min-width: 140px;
      text-align: center;
@@ -192,7 +192,7 @@ input:focus-visible {
 }
 
 .pagination a:hover {
-     color: var(--light-grey);
+     color: var(--white);
 }
 
 .previous-page {
@@ -207,17 +207,15 @@ input:focus-visible {
      }
 
      .logo {
+          min-width: 0;
           display: inline-block;
           margin-bottom: 10px;
-          margin-right: 0;
      }
 
      form,
      .search-input {
           width: 100%;
-     }
-
-     .search-input {
+          margin: 0;
           min-width: 0;
      }
 
