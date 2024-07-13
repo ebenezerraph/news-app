@@ -65,8 +65,10 @@ header {
 .logo {
      min-width: 140px;
      text-transform: uppercase;
-     color: var(--darker-green);
-     font-weight: bolder;
+     color: var(--light-green);
+     font-weight: 700;
+     font-size: 20px;
+     -webkit-text-stroke: 1px var(--dark-green);
 }
 
 form {
@@ -74,7 +76,7 @@ form {
 }
 
 .search-input {
-     width: 100%;
+     width: 90%;
      min-width: 500px;
      height: 30px;
      border: none;
@@ -199,7 +201,7 @@ input:focus-visible {
      margin-right: 20px;
 }
 
-@media screen and (max-width: 780px) {
+@media screen and (max-width: 830px) {
      header {
           flex-direction: column;
           height: auto;

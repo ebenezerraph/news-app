@@ -41,9 +41,13 @@
 {{ end }}
 
 {{ define "error-message" }}
-{{ with .ErrorMsg }}
+{{ if .ErrorMsg }}
 <div class="error-message">
-    <p>{{ . }}</p>
+    <p>{{ .ErrorMsg }}</p>
+</div>
+{{ else if and .Results (eq (len .Results.Articles) 0) }}
+<div class="error-message">
+    <p>No results found for query: <strong>{{ .Query }}</strong></p>
 </div>
 {{ end }}
 {{ end }}
