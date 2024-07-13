@@ -93,13 +93,24 @@ func (s *Server) fetchResults(query, page string) (*news.Results, error) {
 		return nil, err
 	}
 
-	// Filter out removed articles
 	var filteredArticles []news.Article
-	for _, article := range results.Articles {
+	for i, article := range results.Articles {
 		if article.Title != "[Removed]" && article.Description != "[Removed]" {
-			filteredArticles = append(filteredArticles, article)
+			isDuplicate := false
+			for j := 0; j < i; j++ {
+				prevArticle := results.Articles[j]
+				if prevArticle.Source.Name == article.Source.Name &&
+					(prevArticle.Title == article.Title || prevArticle.Description == article.Description) {
+					isDuplicate = true
+					break
+				}
+			}
+			if !isDuplicate {
+				filteredArticles = append(filteredArticles, article)
+			}
 		}
 	}
+	
 	results.Articles = filteredArticles
 
 	return results, nil
