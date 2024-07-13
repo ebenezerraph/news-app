@@ -67,7 +67,7 @@
         </div>
         {{ if and .URLToImage ($.IsImageValid .URLToImage) }}
         <div class="image-container">
-            <img class="article-image" src="{{ .URLToImage }}" alt=" " loading="lazy">
+            <img class="article-image" src="{{ .URLToImage }}" alt="Article image" loading="lazy">
         </div>
         {{ end }}
     </li>
