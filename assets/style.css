@@ -215,6 +215,14 @@ input:focus-visible {
           margin-bottom: 5px;
      }
 
+     .result-count {
+          margin-top: 15px;
+     }
+
+     .error-message p {
+          margin-top: 15px;
+     }
+
      form,
      .search-input {
           width: 100%;
