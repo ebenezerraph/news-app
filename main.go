@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -192,7 +193,11 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	totalPages := 5
+	pageSize := s.newsapi.PageSize
+	totalPages := int(math.Ceil(float64(results.TotalResults) / float64(pageSize)))
+	if totalPages > 5 {
+		totalPages = 5
+	}
 
 	nextPage := currentPage + 1
 	previousPage := currentPage - 1
@@ -245,7 +250,7 @@ func (s *Server) handleSearchError(w http.ResponseWriter, query, page string, er
 		ErrorMsg: "Error fetching news. Please check your internet connection and try again later.",
 	}
 	if page > "5" {
-		search.ErrorMsg = "You can only fetch a maximum of 5 pages."
+		search.ErrorMsg = "You can only get a maximum of 5 pages."
 	}
 	if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 		search.ErrorMsg = "The request timed out. Please try again later."
