@@ -255,7 +255,7 @@ func (s *Server) handleSearchError(w http.ResponseWriter, query string, currentP
 	search := &Search{
 		Query:       query,
 		CurrentPage: currentPage,
-		ErrorMsg:    "Error fetching news. Please check your internet connection and try again later.",
+		ErrorMsg:    "Error fetching news. Please check your internet connection or try again later.",
 	}
 
 	if totalPages != nil {
