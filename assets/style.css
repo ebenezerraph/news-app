@@ -63,7 +63,7 @@ header {
 }
 
 .logo {
-     min-width: 140px;
+     min-width: 115px;
      text-transform: uppercase;
      color: var(--light-green);
      font-weight: 700;
@@ -95,9 +95,9 @@ input:focus-visible {
 
 .github-button {
      min-height: 30px;
-     min-width: 140px;
+     min-width: 115px;
      text-align: center;
-     padding: 3px 15px;
+     padding: 3px 7px;
      box-sizing: border-box;
 }
 
