@@ -172,6 +172,7 @@ input:focus-visible {
 .description {
      color: var(--dark-grey);
      margin-bottom: 15px;
+     word-wrap: break-word;
 }
 
 .metadata {
