@@ -68,6 +68,7 @@ header {
      color: var(--light-green);
      font-weight: 700;
      font-size: 20px;
+     line-height: 30px;
      -webkit-text-stroke: 1px var(--dark-green);
 }
 
@@ -97,14 +98,14 @@ input:focus-visible {
      min-height: 30px;
      min-width: 115px;
      text-align: center;
-     padding: 3px 7px;
+     padding: 5px 10px;
      box-sizing: border-box;
 }
 
 .container {
      max-width: 720px;
      margin: 0 auto;
-     padding: 80px 20px 40px;
+     padding: 90px 20px 40px;
 }
 
 .error-message {
@@ -114,19 +115,21 @@ input:focus-visible {
      display: flex;
      height: 100vh;
      width: 100%;
-     padding-top: 80px;
+     padding-top: 90px;
      justify-content: center;
 }
 
 .error-message p {
      text-align: center;
      color: var(--dark-grey);
+     line-height: 20px;
 }
 
 .result-count {
      color: var(--dark-grey);
      text-align: center;
      margin-bottom: 15px;
+     line-height: 20px;
 }
 
 .search-results {
@@ -212,7 +215,7 @@ input:focus-visible {
      .logo {
           min-width: 0;
           display: inline-block;
-          margin-bottom: 5px;
+          margin-bottom: 10px;
      }
 
      .result-count {
