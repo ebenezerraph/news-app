@@ -170,6 +170,7 @@ input:focus-visible {
 
 .title {
      margin-bottom: 15px;
+     word-wrap: break-word;
 }
 
 .description {
