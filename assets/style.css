@@ -105,7 +105,7 @@ input:focus-visible {
 .container {
      max-width: 720px;
      margin: 0 auto;
-     padding: 90px 20px 40px;
+     padding: 50px 20px 40px;
 }
 
 .error-message {
@@ -128,7 +128,7 @@ input:focus-visible {
 .result-count {
      color: var(--dark-grey);
      text-align: center;
-     margin-bottom: 15px;
+     margin: 15px 0;
      line-height: 20px;
 }
 
@@ -219,10 +219,6 @@ input:focus-visible {
           margin-bottom: 10px;
      }
 
-     .result-count {
-          margin-top: 15px;
-     }
-
      .error-message p {
           margin-top: 15px;
      }
@@ -233,6 +229,10 @@ input:focus-visible {
           margin: 0;
           min-width: 0;
           max-width: 680px;
+     }
+
+     .container {
+          padding-top: 90px;
      }
 
      .github-button {
