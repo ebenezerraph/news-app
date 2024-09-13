@@ -8,11 +8,11 @@ You can view a live demo of this application [here](https://ebenezerraph-news-ap
 
 ## Features
 - Fetches news from multiple sources using a News API
-- Searches for news article using keywords.
+- Searches for news articles using keywords.
 - Simple and responsive UI
 
 ## Improvements
-Although I followed the tutorial step-by-step, I later decided to go off course and make some improvements. These improvements include:
+Although I followed the tutorial step-by-step, I later decided to go off-course and make some improvements. These improvements include:
 - Overall Code Structure - With the help of Claude, I modified, re-formatted and refractored the entire code structure to improve performance.
 - Logs - Made the logs more informative for better debugging.
 - Error Handling - Created a function to handle errors effectively, and return the right error messages to the client.
@@ -26,6 +26,3 @@ Although I followed the tutorial step-by-step, I later decided to go off course 
 - Frontend:
      - HTML
      - CSS
-
-## Contributing
-If you find any issues or have suggestions, feel free to open an issue or submit a pull request.
