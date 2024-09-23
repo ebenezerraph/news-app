@@ -18,8 +18,4 @@ Although I followed the tutorial step-by-step, I later decided to go off-course 
 - Template and UI - Made changes to the HTML template and page style, to improve user interface and experience.
 
 ## Technologies
-- Backend:
-     - Golang
-- Frontend:
-     - HTML
-     - CSS
+[![technologies](https://skillicons.dev/icons?i=go,html,css&theme=light)](https://skillicons.dev)
