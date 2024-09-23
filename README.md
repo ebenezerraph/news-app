@@ -1,6 +1,4 @@
 # News App
- 
-## Description
 This is a basic news web application built with Go, using this [tutorial](https://github.com/Freshman-tech/news-demo). It fetches news articles from a News API and renders it on the webpage.
 
 ## Features
